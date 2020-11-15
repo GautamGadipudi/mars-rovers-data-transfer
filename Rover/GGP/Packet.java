@@ -1,4 +1,4 @@
-package Rover.Router.GGP;
+package Rover.GGP;
 
 import java.util.Arrays;
 
@@ -16,7 +16,7 @@ public class Packet {
     byte[] data;
 
     // In bytes
-    static final int maximumSize = 1024;
+    public static final int maximumSize = 10000;
 
     /**
      * Used at sender when creating GGP packet
@@ -32,6 +32,11 @@ public class Packet {
         }
         else
             this.data = data;
+    }
+
+    public Packet(Header Header) {
+        this.header = Header;
+        this.data = new byte[0];
     }
 
 
@@ -59,7 +64,7 @@ public class Packet {
      *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
     public byte[] getByteArray() {
-        byte[] packetByteArray = new byte[data.length];
+        byte[] packetByteArray = new byte[Header.size + data.length];
         byte[] headerByteArray = this.header.getByteArray();
 
         for (int i=0; i < headerByteArray.length; i++) {
@@ -71,5 +76,13 @@ public class Packet {
         }
 
         return packetByteArray;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public Header getHeader() {
+        return header;
     }
 }

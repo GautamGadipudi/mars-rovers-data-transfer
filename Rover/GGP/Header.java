@@ -1,8 +1,4 @@
-package Rover.Router.GGP;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package Rover.GGP;
 
 /**
  * Header.java
@@ -15,12 +11,12 @@ import java.util.stream.Stream;
  */
 public class Header {
     String sourceIP;
-    int identifier;
+    long identifier;
     boolean isLast;
     byte destinationRouterId;
 
     // In bytes
-    final static int size = 8;
+    public final static int size = 8;
 
     /**
      * Used at source when creating a header
@@ -30,7 +26,7 @@ public class Header {
      * @param isLast Is this the last packet?
      * @param destinationRouterId Destination of the router.
      */
-    public Header(String sourceIP, int id, boolean isLast, byte destinationRouterId) {
+    public Header(String sourceIP, long id, boolean isLast, byte destinationRouterId) {
         this.sourceIP = sourceIP;
         this.identifier = id;
         this.isLast = isLast;
@@ -43,10 +39,8 @@ public class Header {
      * @param byteArray GG header data as a byte array.
      */
     public Header(byte[] byteArray) {
-        this.sourceIP = Stream.of(Arrays.copyOfRange(byteArray, 0, 4))
-                .map(String::valueOf)
-                .collect(Collectors.joining("."));
-        this.identifier = (byteArray[4] & 0xff << 8) + (byteArray[4] & 0xff);
+        this.sourceIP = byteArray[0] + "." + byteArray[1] + "." + byteArray[2] + "." + byteArray[3];
+        this.identifier = (byteArray[4] & 0xff << 8) + (byteArray[5] & 0xff);
         this.isLast = (byteArray[6] == 1) ? true : false;
         this.destinationRouterId = byteArray[7];
     }
@@ -55,9 +49,9 @@ public class Header {
      *  Create GG header as a byte array as below:
      *
      *        0                                                                 8 bytes
-     *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     *       |  Source IP (4)  |  Seq Num (2) | Last Segment (1) | Dest. Router Id (1) |
-     *       +-----------------+--------------+------------------+---------------------+
+     *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     *       |  Source IP (4)  | Identifier (2) | Last Segment (1) | Dest. Router Id (1) |
+     *       +-----------------+-----------------+------------------+--------------------+
      * @return
      */
     public byte[] getByteArray() {
@@ -78,5 +72,17 @@ public class Header {
         headerByteArray[7] = this.destinationRouterId;
 
         return headerByteArray;
+    }
+
+    public String getSourceIP() {
+        return sourceIP;
+    }
+
+    public long getIdentifier() {
+        return identifier;
+    }
+
+    public boolean isLast() {
+        return isLast;
     }
 }

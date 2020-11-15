@@ -1,4 +1,4 @@
-package Rover.Router;
+package Rover;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,7 +13,8 @@ public final class RouterConfig {
 
     String multicastIP = "224.0.0.9";
     int multicastPort = 1337;
-    int fileExchangePort = 1338;
+    int fileExchangeReceiverPort = 1338;
+    int fileExchangeSenderPort = 1339;
 
     List<String> AddressTemplate = Arrays.asList("10", "0", "-1", "0");
 
