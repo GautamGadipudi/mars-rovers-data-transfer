@@ -16,7 +16,7 @@ public class Packet {
     byte[] data;
 
     // In bytes
-    public static final int maximumSize = 10000;
+    public static final int maximumSize = 1024;
 
     /**
      * Used at sender when creating GGP packet

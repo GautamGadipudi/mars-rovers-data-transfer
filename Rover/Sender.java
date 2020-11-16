@@ -6,15 +6,24 @@ import Rover.GGP.Packet;
 import java.io.IOException;
 import java.net.*;
 
+/**
+ * Sender.java
+ *
+ * Sender class that is a thread. It is started for a rover that wants to send data.
+ *
+ * @author gautamgadipudi
+ * @version 1.0
+ * @since 11/13/2020
+ */
 public class Sender extends Thread {
     DatagramSocket socket;
-    Router router;
+    Rover rover;
     String destinationRouterIP;
     InetAddress destinationAddress;
     byte[] fileContent;
 
-    public Sender(Router router, String destinationRouterIP, byte[] fileContent) {
-        this.router = router;
+    public Sender(Rover rover, String destinationRouterIP, byte[] fileContent) {
+        this.rover = rover;
         this.destinationRouterIP = destinationRouterIP;
         this.fileContent = fileContent;
 
@@ -26,7 +35,7 @@ public class Sender extends Thread {
         }
 
         try {
-            this.socket = new DatagramSocket(router.routerConfig.fileExchangeSenderPort);
+            this.socket = new DatagramSocket(rover.roverConfig.fileExchangeSenderPort);
         } catch (SocketException e) {
             System.out.println("SENDER: Unable to create socket.");
             e.printStackTrace();
@@ -43,7 +52,9 @@ public class Sender extends Thread {
         for (int i = 0; i < this.fileContent.length; i += maxDataLength) {
             seqNum += 1;
 
-            // Check if last segment
+            seqNum = seqNum % 256;
+
+            // Check if last packet
             if (i + maxDataLength >= fileContent.length)
                 isLast = true;
 
@@ -60,48 +71,51 @@ public class Sender extends Thread {
                 }
             }
 
-//            Header Header = new Header(router.routerConfig.Address, seqNum, isLast, Byte.parseByte(destinationRouterIP.split("\\.")[2]));
-            Header Header = new Header(router.routerConfig.Address, seqNum, isLast, (byte)1);
+            // Create GGP packet to send
+            Header Header = new Header(rover.roverConfig.Address, seqNum, isLast, (byte)1);
             Packet packet = null;
             try {
                 packet = new Packet(Header, data);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
             byte[] packetByteArray = packet.getByteArray();
-            DatagramPacket senderDatagramPacket = new DatagramPacket(packetByteArray, packetByteArray.length, destinationAddress, router.routerConfig.fileExchangeReceiverPort);
+            DatagramPacket sendDatagramPacket = new DatagramPacket(packetByteArray, packetByteArray.length, destinationAddress, rover.roverConfig.fileExchangeReceiverPort);
+
             try {
                 System.out.println("Sending packet with seq. #" + seqNum);
-                socket.send(senderDatagramPacket);
+                socket.send(sendDatagramPacket);
             } catch (IOException e) {
                 System.out.println("SENDER: Unable to send!");
                 e.printStackTrace();
             }
 
-            boolean ackVerified = false;
+            boolean ackReceived = false;
 
-            while (!ackVerified) {
+            // Wait for ack corresponding to current seq. number to be received
+            while (!ackReceived) {
                 byte[] buffer = new byte[8];
                 DatagramPacket ackPacket = new DatagramPacket(buffer, buffer.length);
 
                 try {
-                    socket.setSoTimeout(1000);
+                    socket.setSoTimeout(2000);
                     socket.receive(ackPacket);
                     Header ackHeader = new Header(buffer);
 
                     ackNum = ackHeader.getIdentifier();
 
+                    // Received correct ack
                     if (ackNum == seqNum) {
                         System.out.println("Received ack for seq. #" + seqNum);
-                        ackVerified = true;
+                        ackReceived = true;
                         break;
                     }
                 }
                 catch (SocketTimeoutException e) {
-                    System.out.println("ReTransmitting packet with seqNum = "+ seqNum);
+                    System.out.println("Did not receive ack for seq. #" + seqNum);
+                    System.out.println("Resending packet with seq. # = "+ seqNum);
                     try {
-                        socket.send(senderDatagramPacket);
+                        socket.send(sendDatagramPacket);
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }

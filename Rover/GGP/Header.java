@@ -48,7 +48,7 @@ public class Header {
     /**
      *  Create GG header as a byte array as below:
      *
-     *        0                                                                 8 bytes
+     *        0                                                                     8 bytes
      *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      *       |  Source IP (4)  | Identifier (2) | Last Segment (1) | Dest. Router Id (1) |
      *       +-----------------+-----------------+------------------+--------------------+
